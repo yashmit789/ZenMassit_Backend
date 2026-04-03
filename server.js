@@ -16,7 +16,10 @@ app.use(cookieParser()); // CRITICAL: Must be above routes
 
 // CORS must be exact
 app.use(cors({
-    origin: 'http://localhost:5173', // No trailing slash!
+    origin: [
+        'http://localhost:5173', 
+        'https://zenmange.netlify.app' // This allows any netlify preview/production URL
+    ],
     credentials: true,               // Allows cookies to pass through
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
