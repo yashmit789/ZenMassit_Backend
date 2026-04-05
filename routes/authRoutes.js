@@ -10,6 +10,7 @@ const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_ANON_KEY
 );
+
 router.get('/me', async (req, res) => {
     const token = req.cookies.access_token;
 
@@ -26,6 +27,7 @@ router.get('/me', async (req, res) => {
 
     res.status(200).json({ user });
 });
+
 // --- 1. SIGNUP ---
 router.post('/signup', async (req, res) => {
     const { email, password } = req.body;
@@ -45,12 +47,12 @@ router.post('/login', async (req, res) => {
         if (error) throw error;
 
         // SET THE SECURE COOKIE
-        // This is what makes the 401 error disappear!
+        // Updated for Cross-Domain Production (Render -> Netlify/Vercel)
         res.cookie('access_token', data.session.access_token, {
-            httpOnly: true,     // Prevents cross-site scripting (XSS)
-            secure: process.env.NODE_ENV === 'production', // true in production (HTTPS)
-            sameSite: 'lax',    // Allows cross-origin requests on localhost
-            maxAge: 3600 * 1000 // 1 hour
+            httpOnly: true,     // Prevents JS theft
+            secure: true,       // REQUIRED for cross-origin HTTPS
+            sameSite: 'none',   // REQUIRED for cross-origin cookies
+            maxAge: 7 * 24 * 3600 * 1000 // Extended to 7 days
         });
 
         res.status(200).json({ 
@@ -66,7 +68,12 @@ router.post('/login', async (req, res) => {
 // --- 3. LOGOUT ---
 router.post('/logout', (req, res) => {
     // Clear the cookie from the browser
-    res.clearCookie('access_token');
+    // CRITICAL: Must match the flags used when setting the cookie
+    res.clearCookie('access_token', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+    });
     res.status(200).json({ message: 'Logged out successfully' });
 });
 
